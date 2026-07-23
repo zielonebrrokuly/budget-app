@@ -2,6 +2,7 @@ import { Card } from "@/components/Card";
 import { CategoryMonthCell } from "@/components/CategoryMonthCell";
 import { CategoryTrendChart } from "@/components/CategoryTrendChart";
 import { SavingsTrendChart } from "@/components/SavingsTrendChart";
+import { WideSection } from "@/components/WideSection";
 import { MONTH_NAMES } from "@/lib/categories";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import {
@@ -84,11 +85,10 @@ export default async function PodsumowaniePage({
   ) => (
     <>
       <tr>
-        <td
-          colSpan={15}
-          className="sticky left-0 bg-surface-alt text-xs uppercase tracking-wide text-muted font-semibold px-3 py-2"
-        >
-          {label}
+        <td colSpan={15} className="sticky left-0 px-2 py-1">
+          <div className="rounded-lg bg-surface-alt text-xs uppercase tracking-wide text-muted font-semibold px-3 py-2">
+            {label}
+          </div>
         </td>
       </tr>
       {rows.map((row) => {
@@ -140,87 +140,99 @@ export default async function PodsumowaniePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Podsumowanie roczne</h1>
-        <p className="text-muted text-sm mt-1">Kategorie w podziale na miesiące — {year}</p>
-      </div>
-
-      <Card>
-        <form className="flex items-end gap-3" action="/podsumowanie">
-          <label className="flex flex-col gap-1 text-sm text-muted">
-            Rok
-            <select
-              name="year"
-              defaultValue={year}
-              className="rounded-xl bg-surface-alt border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            className="rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-2 transition-colors"
-          >
-            Pokaż
-          </button>
-        </form>
-      </Card>
-
-      <Card className="p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-max text-sm border-collapse">
-            <thead>
-              <tr className="text-xs uppercase tracking-wide text-muted">
-                <th className="sticky left-0 bg-surface px-3 py-2 text-left">Kategoria</th>
-                {MONTH_SHORT.map((m) => (
-                  <th key={m} className="px-2 py-2 text-right font-medium">
-                    {m}
-                  </th>
-                ))}
-                <th className="px-2 py-2 text-right font-medium">Śr.</th>
-                <th className="px-2 py-2 text-right font-medium">Suma</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dataRows(incomeRows, "Przychody")}
-              {dataRows(expenseRows, "Wydatki")}
-              <tr>
-                <td colSpan={15} className="sticky left-0 bg-surface-alt text-xs uppercase tracking-wide text-muted font-semibold px-3 py-2">
-                  Podsumowanie
-                </td>
-              </tr>
-              {totalsRow("Przychody łącznie", incomeByMonth, "text-positive")}
-              {totalsRow("Wydatki łącznie", expenseByMonth, "text-negative")}
-              {totalsRow("Oszczędności", savingsByMonth)}
-              {totalsRow("Saldo narastające", balanceByMonth)}
-            </tbody>
-          </table>
+      <WideSection>
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Podsumowanie roczne</h1>
+          <p className="text-muted text-sm mt-1">Kategorie w podziale na miesiące — {year}</p>
         </div>
-      </Card>
+      </WideSection>
+
+      <WideSection>
+        <Card>
+          <form className="flex items-end gap-3" action="/podsumowanie">
+            <label className="flex flex-col gap-1 text-sm text-muted">
+              Rok
+              <select
+                name="year"
+                defaultValue={year}
+                className="rounded-xl bg-surface-alt border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="submit"
+              className="rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-2 transition-colors"
+            >
+              Pokaż
+            </button>
+          </form>
+        </Card>
+      </WideSection>
+
+      <WideSection>
+        <Card className="p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-max w-full text-sm border-collapse">
+              <thead>
+                <tr className="text-xs uppercase tracking-wide text-muted">
+                  <th className="sticky left-0 bg-surface px-3 py-2 text-left">Kategoria</th>
+                  {MONTH_SHORT.map((m) => (
+                    <th key={m} className="px-2 py-2 text-right font-medium">
+                      {m}
+                    </th>
+                  ))}
+                  <th className="px-2 py-2 text-right font-medium">Śr.</th>
+                  <th className="px-2 py-2 text-right font-medium">Suma</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dataRows(incomeRows, "Przychody")}
+                {dataRows(expenseRows, "Wydatki")}
+                <tr>
+                  <td colSpan={15} className="sticky left-0 px-2 py-1">
+                    <div className="rounded-lg bg-surface-alt text-xs uppercase tracking-wide text-muted font-semibold px-3 py-2">
+                      Podsumowanie
+                    </div>
+                  </td>
+                </tr>
+                {totalsRow("Przychody łącznie", incomeByMonth, "text-positive")}
+                {totalsRow("Wydatki łącznie", expenseByMonth, "text-negative")}
+                {totalsRow("Oszczędności", savingsByMonth)}
+                {totalsRow("Saldo narastające", balanceByMonth)}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </WideSection>
 
       <p className="text-xs text-muted">
         Roczne saldo końcowe: <span className="text-foreground font-medium">{formatCurrency(balanceByMonth[11] ?? 0)}</span>
       </p>
 
-      <Card>
-        <h2 className="font-medium text-foreground mb-4">Trend oszczędności — {year}</h2>
-        <div className="h-56">
-          <SavingsTrendChart data={savingsTrendData} />
-        </div>
-      </Card>
+      <WideSection>
+        <Card>
+          <h2 className="font-medium text-foreground mb-4">Trend oszczędności — {year}</h2>
+          <div className="h-56">
+            <SavingsTrendChart data={savingsTrendData} />
+          </div>
+        </Card>
+      </WideSection>
 
-      <Card>
-        <h2 className="font-medium text-foreground mb-4">Trend kategorii — {year}</h2>
-        <CategoryTrendChart
-          categories={expenseCategories}
-          monthlyByCategory={monthlyByCategory}
-          monthLabels={MONTH_SHORT}
-        />
-      </Card>
+      <WideSection>
+        <Card>
+          <h2 className="font-medium text-foreground mb-4">Trend kategorii — {year}</h2>
+          <CategoryTrendChart
+            categories={expenseCategories}
+            monthlyByCategory={monthlyByCategory}
+            monthLabels={MONTH_SHORT}
+          />
+        </Card>
+      </WideSection>
     </div>
   );
 }
