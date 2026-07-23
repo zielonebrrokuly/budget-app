@@ -30,24 +30,27 @@ export function CategoryTrendChart({
   const values = monthlyByCategory[selected] ?? new Array(12).fill(0);
   const data = monthLabels.map((month, i) => ({ month, value: values[i] ?? 0 }));
   const hasData = data.some((d) => d.value > 0);
+  const total = values.reduce((sum, v) => sum + v, 0);
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap gap-2">
-        {categories.map((category) => (
-          <button
-            key={category}
-            type="button"
-            onClick={() => setSelected(category)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              selected === category
-                ? "bg-accent text-white"
-                : "bg-surface-alt text-muted hover:text-foreground"
-            }`}
-          >
-            {category}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <select
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          className="rounded-xl bg-surface-alt border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+
+        <p className="text-sm text-muted">
+          Suma wydatków — {selected}:{" "}
+          <span className="text-foreground font-medium">{formatCurrency(total)}</span>
+        </p>
       </div>
 
       <div className="h-56">
