@@ -36,3 +36,12 @@ html {
 * {
   scrollbar-color: var(--border) var(--background);
 }
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -122,7 +122,7 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
         <span className="font-semibold text-foreground tracking-tight mr-2 shrink-0">
           Budżet
         </span>
-        <nav className="flex gap-5 overflow-x-auto self-stretch">
+        <nav className="flex gap-5 overflow-x-auto self-stretch no-scrollbar">
           {MAIN_LINKS.map(({ href, label, Icon }) => (
             <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
           ))}
