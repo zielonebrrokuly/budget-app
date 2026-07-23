@@ -1,0 +1,67 @@
+// Odchudzona apka budżetowa — schemat świeży, tylko potrzebne modele.
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  type        String // "EXPENSE" | "INCOME"
+  date        DateTime
+  amount      Float
+  description String?
+  category    String
+  createdAt   DateTime @default(now())
+
+  @@index([type, date])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  type      String // "EXPENSE" | "INCOME"
+  name      String
+  createdAt DateTime @default(now())
+
+  @@unique([type, name])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model PlannedExpense {
+  id        String   @id @default(cuid())
+  year      Int
+  month     Int // 0-11
+  name      String
+  amount    Float
+  isPaid    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([year, month])
+}
+
+model TransactionAudit {
+  id             String    @id @default(cuid())
+  transactionId  String
+  action         String // "UPDATED" | "DELETED"
+  type           String // "EXPENSE" | "INCOME"
+  oldDate        DateTime
+  oldAmount      Float
+  oldCategory    String
+  oldDescription String?
+  newDate        DateTime?
+  newAmount      Float?
+  newCategory    String?
+  newDescription String?
+  changedAt      DateTime  @default(now())
+
+  @@index([changedAt])
+}

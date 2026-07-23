@@ -1,0 +1,5 @@
+.env
+.env.*
+data-export.json
+dev.db
+dev.db-journal
