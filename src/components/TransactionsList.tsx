@@ -7,6 +7,7 @@ type Transaction = {
   amount: number;
   category: string;
   description: string | null;
+  deductedFromFood: boolean;
 };
 
 export function TransactionsList({

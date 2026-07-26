@@ -112,16 +112,17 @@ export async function createTransaction(
     const date = parseDate(formData.get("date"));
     const description = String(formData.get("description") ?? "").trim() || null;
 
+    // Checkbox „Odejmij z karty jedzenie" — obniża budżet Jedzenie o kwotę tego wydatku.
+    const deductFromFood =
+      !!formData.get("deductFromFood") &&
+      type === "EXPENSE" &&
+      !isFoodMarker(category, description);
+
     await prisma.transaction.create({
-      data: { type, category, amount, date, description },
+      data: { type, category, amount, date, description, deductedFromFood: deductFromFood },
     });
 
-    // Checkbox „Odejmij z karty jedzenie" — obniża budżet Jedzenie o kwotę tego wydatku.
-    if (
-      formData.get("deductFromFood") &&
-      type === "EXPENSE" &&
-      !isFoodMarker(category, description)
-    ) {
+    if (deductFromFood) {
       await deductFromFoodBudget(date, amount);
     }
 
@@ -151,6 +152,14 @@ export async function updateTransaction(
     const date = parseDate(formData.get("date"));
     const description = String(formData.get("description") ?? "").trim() || null;
 
+    // Checkbox „Odejmij z karty jedzenie" — stan zapisany na transakcji (deductedFromFood),
+    // żeby przy ponownej edycji było widać czy dany wydatek już obniżył budżet Jedzenie.
+    const wasDeducted = existing.deductedFromFood;
+    const nowDeducted =
+      !!formData.get("deductFromFood") &&
+      type === "EXPENSE" &&
+      !isFoodMarker(category, description);
+
     await prisma.$transaction([
       prisma.transactionAudit.create({
         data: {
@@ -169,16 +178,16 @@ export async function updateTransaction(
       }),
       prisma.transaction.update({
         where: { id },
-        data: { category, amount, date, description },
+        data: { category, amount, date, description, deductedFromFood: nowDeducted },
       }),
     ]);
 
-    // Checkbox „Odejmij z karty jedzenie" — obniża budżet Jedzenie o kwotę tego wpisu.
-    if (
-      formData.get("deductFromFood") &&
-      type === "EXPENSE" &&
-      !isFoodMarker(category, description)
-    ) {
+    // Odwróć starą kwotę (jeśli była odjęta), zastosuj nową (jeśli ma być odjęta) —
+    // pokrywa też przypadek "checkbox nadal zaznaczony, ale kwota/data się zmieniły".
+    if (wasDeducted) {
+      await deductFromFoodBudget(existing.date, -existing.amount);
+    }
+    if (nowDeducted) {
       await deductFromFoodBudget(date, amount);
     }
 

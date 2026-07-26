@@ -11,13 +11,14 @@ datasource db {
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
-  type        String // "EXPENSE" | "INCOME"
-  date        DateTime
-  amount      Float
-  description String?
-  category    String
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  type              String // "EXPENSE" | "INCOME"
+  date              DateTime
+  amount            Float
+  description       String?
+  category          String
+  deductedFromFood  Boolean  @default(false)
+  createdAt         DateTime @default(now())
 
   @@index([type, date])
 }

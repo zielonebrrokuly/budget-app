@@ -10,6 +10,7 @@ type Transaction = {
   amount: number;
   category: string;
   description: string | null;
+  deductedFromFood: boolean;
 };
 
 const outlineBox = "bg-surface rounded-2xl p-5";

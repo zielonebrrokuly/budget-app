@@ -24,6 +24,7 @@ export function TransactionRow({
     amount: number;
     category: string;
     description: string | null;
+    deductedFromFood: boolean;
   };
   categories: readonly string[];
   type: "EXPENSE" | "INCOME";
@@ -97,6 +98,7 @@ export function TransactionRow({
             <input
               type="checkbox"
               name="deductFromFood"
+              defaultChecked={transaction.deductedFromFood}
               className="w-4 h-4 rounded border-border bg-surface-alt accent-accent"
             />
             Odejmij z karty jedzenie
@@ -117,8 +119,16 @@ export function TransactionRow({
           {formatCurrency(transaction.amount)}
         </span>
         <span className="text-xs text-foreground truncate min-w-0">{transaction.category}</span>
-        <span className="text-xs text-muted truncate min-w-0">
+        <span className="text-xs text-muted truncate min-w-0 flex items-center gap-1">
           {transaction.description ?? "—"}
+          {transaction.deductedFromFood && (
+            <span
+              title="Odjęte z karty jedzenie"
+              className="shrink-0 rounded-full bg-accent/15 text-accent text-[10px] font-medium px-1.5 py-0.5"
+            >
+              jedzenie
+            </span>
+          )}
         </span>
       </div>
       <div className="flex shrink-0 gap-2">
