@@ -5,7 +5,13 @@ import { deleteCategory, renameCategory, type ActionState } from "@/lib/actions"
 
 const initialState: ActionState = {};
 
-export function CategoryRow({ category }: { category: { id: string; name: string } }) {
+export function CategoryRow({
+  category,
+  indented = false,
+}: {
+  category: { id: string; name: string };
+  indented?: boolean;
+}) {
   const [editing, setEditing] = useState(false);
   const [renameState, renameAction, renamePending] = useActionState(renameCategory, initialState);
   const [deleteState, deleteAction, deletePending] = useActionState(deleteCategory, initialState);
@@ -20,7 +26,7 @@ export function CategoryRow({ category }: { category: { id: string; name: string
     return (
       <form
         action={renameAction}
-        className="flex flex-wrap items-center gap-2 bg-surface-alt rounded-xl p-2"
+        className={`flex flex-wrap items-center gap-2 bg-surface-alt rounded-xl p-2 ${indented ? "ml-5" : ""}`}
       >
         <input type="hidden" name="id" value={category.id} />
         <input
@@ -52,8 +58,13 @@ export function CategoryRow({ category }: { category: { id: string; name: string
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-surface-alt transition-colors">
-        <span className="text-sm text-foreground">{category.name}</span>
+      <div
+        className={`flex items-center justify-between px-3 py-2 rounded-xl hover:bg-surface-alt transition-colors ${indented ? "ml-5" : ""}`}
+      >
+        <span className={`text-sm ${indented ? "text-muted" : "text-foreground"}`}>
+          {indented && "↳ "}
+          {category.name}
+        </span>
         <div className="flex gap-3">
           <button
             type="button"

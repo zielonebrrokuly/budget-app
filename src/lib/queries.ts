@@ -30,11 +30,40 @@ export async function getTileVisibility(): Promise<Record<TileKey, boolean>> {
   ) as Record<TileKey, boolean>;
 }
 
-export async function getCategories(type: "EXPENSE" | "INCOME") {
-  return prisma.category.findMany({
+export type CategoryWithParent = {
+  id: string;
+  name: string;
+  parentId: string | null;
+  parentName: string | null;
+};
+
+// Zwraca kategorie posortowane tak, że po każdej kategorii głównej od razu
+// następują jej podkategorie (kolejność tworzenia w obu grupach) — wygodne
+// zarówno do wyświetlania listy, jak i budowania <optgroup>/wierszy z podsumą.
+export async function getCategories(type: "EXPENSE" | "INCOME"): Promise<CategoryWithParent[]> {
+  const rows = await prisma.category.findMany({
     where: { type },
     orderBy: { createdAt: "asc" },
   });
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const childrenByParent = new Map<string, typeof rows>();
+  for (const r of rows) {
+    if (r.parentId) {
+      if (!childrenByParent.has(r.parentId)) childrenByParent.set(r.parentId, []);
+      childrenByParent.get(r.parentId)!.push(r);
+    }
+  }
+  const ordered: typeof rows = [];
+  for (const r of rows) {
+    if (r.parentId) continue;
+    ordered.push(r, ...(childrenByParent.get(r.id) ?? []));
+  }
+  return ordered.map((r) => ({
+    id: r.id,
+    name: r.name,
+    parentId: r.parentId,
+    parentName: r.parentId ? (byId.get(r.parentId)?.name ?? null) : null,
+  }));
 }
 
 export async function getCategoryNames(type: "EXPENSE" | "INCOME") {

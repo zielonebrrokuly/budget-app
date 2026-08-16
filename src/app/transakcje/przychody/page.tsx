@@ -1,6 +1,6 @@
 import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionsSearch } from "@/components/TransactionsSearch";
-import { getAvailableYears, getCategoryNames, getTransactions } from "@/lib/queries";
+import { getAvailableYears, getCategories, getTransactions } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export default async function PrzychodyPage({
   const [years, transactions, categories] = await Promise.all([
     getAvailableYears(),
     getTransactions("INCOME", year, month, category),
-    getCategoryNames("INCOME"),
+    getCategories("INCOME"),
   ]);
 
   const advancedActive =

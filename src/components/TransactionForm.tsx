@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { createTransaction, type ActionState } from "@/lib/actions";
 import { AmountInput } from "@/components/AmountInput";
+import { CategorySelect, type CategoryOption } from "@/components/CategorySelect";
 
 const initialState: ActionState = {};
 
@@ -25,7 +26,7 @@ export function TransactionForm({
   categories,
 }: {
   type: "EXPENSE" | "INCOME";
-  categories: readonly string[];
+  categories: CategoryOption[];
 }) {
   const [state, formAction, pending] = useActionState(createTransaction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -110,21 +111,12 @@ export function TransactionForm({
 
         <label className="flex flex-col gap-0.5 text-xs text-muted">
           Kategoria
-          <select
-            name="category"
+          <CategorySelect
+            categories={categories}
             required
-            defaultValue=""
+            placeholder="Wybierz"
             className="rounded-lg bg-surface-alt border border-border px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            <option value="" disabled>
-              Wybierz
-            </option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+          />
         </label>
       </div>
 

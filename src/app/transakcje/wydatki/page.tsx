@@ -4,7 +4,7 @@ import { TransactionsSearch } from "@/components/TransactionsSearch";
 import { MONTH_NAMES } from "@/lib/categories";
 import {
   getAvailableYears,
-  getCategoryNames,
+  getCategories,
   getFoodBudget,
   getTransactions,
 } from "@/lib/queries";
@@ -37,7 +37,7 @@ export default async function WydatkiPage({
   const [years, transactions, categories, foodBudget] = await Promise.all([
     getAvailableYears(),
     getTransactions("EXPENSE", year, month, category),
-    getCategoryNames("EXPENSE"),
+    getCategories("EXPENSE"),
     getFoodBudget(year, budgetMonth),
   ]);
 

@@ -24,12 +24,16 @@ model Transaction {
 }
 
 model Category {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   type      String // "EXPENSE" | "INCOME"
   name      String
-  createdAt DateTime @default(now())
+  parentId  String?
+  parent    Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryParent")
+  createdAt DateTime   @default(now())
 
   @@unique([type, name])
+  @@index([parentId])
 }
 
 model Setting {

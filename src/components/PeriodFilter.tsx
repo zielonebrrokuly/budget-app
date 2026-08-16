@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MONTH_NAMES } from "@/lib/categories";
+import { CategorySelect, type CategoryOption } from "@/components/CategorySelect";
 
 const selectClass =
   "rounded-xl bg-surface-alt border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-accent";
@@ -59,7 +60,7 @@ export function PeriodFilter({
   years: number[];
   year: number;
   month?: number;
-  categories?: string[];
+  categories?: CategoryOption[];
   category?: string;
   advancedActive?: boolean;
   liveQuery: string;
@@ -130,14 +131,12 @@ export function PeriodFilter({
         {categories && (
           <label className="flex flex-col gap-1 text-sm text-muted">
             Kategoria
-            <select name="category" defaultValue={category ?? ""} className={selectClass}>
-              <option value="">Wszystkie kategorie</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <CategorySelect
+              categories={categories}
+              defaultValue={category}
+              placeholder="Wszystkie kategorie"
+              className={selectClass}
+            />
           </label>
         )}
         <button

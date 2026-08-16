@@ -232,7 +232,20 @@ export async function createCategory(
     const existing = await prisma.category.findFirst({ where: { type, name } });
     if (existing) return { error: "Taka kategoria już istnieje." };
 
-    await prisma.category.create({ data: { type, name } });
+    // Kategoria nadrzędna (opcjonalna) — max. 2 poziomy: nie można wybrać
+    // jako nadrzędnej kategorii, która sama już jest podkategorią.
+    const parentIdRaw = String(formData.get("parentId") ?? "").trim();
+    let parentId: string | null = null;
+    if (parentIdRaw) {
+      const parent = await prisma.category.findUnique({ where: { id: parentIdRaw } });
+      if (!parent || parent.type !== type) return { error: "Nieprawidłowa kategoria nadrzędna." };
+      if (parent.parentId) {
+        return { error: "Kategoria nadrzędna nie może sama być podkategorią." };
+      }
+      parentId = parent.id;
+    }
+
+    await prisma.category.create({ data: { type, name, parentId } });
 
     revalidateAll();
     return { success: true };
@@ -284,6 +297,13 @@ export async function deleteCategory(
 
     const category = await prisma.category.findUnique({ where: { id } });
     if (!category) return { error: "Nie znaleziono kategorii." };
+
+    const childCount = await prisma.category.count({ where: { parentId: id } });
+    if (childCount > 0) {
+      return {
+        error: `Nie można usunąć — ma ${childCount} podkategorii. Usuń je najpierw.`,
+      };
+    }
 
     const inUse = await prisma.transaction.count({
       where: { type: category.type, category: category.name },

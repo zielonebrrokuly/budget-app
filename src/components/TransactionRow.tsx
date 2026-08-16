@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { deleteTransaction, updateTransaction, type ActionState } from "@/lib/actions";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { AmountInput } from "@/components/AmountInput";
+import { CategorySelect, type CategoryOption } from "@/components/CategorySelect";
 
 const initialState: ActionState = {};
 
@@ -26,7 +27,7 @@ export function TransactionRow({
     description: string | null;
     deductedFromFood: boolean;
   };
-  categories: readonly string[];
+  categories: CategoryOption[];
   type: "EXPENSE" | "INCOME";
 }) {
   const [editing, setEditing] = useState(false);
@@ -58,18 +59,12 @@ export function TransactionRow({
           required
           className="w-full rounded-lg bg-surface border border-border px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         />
-        <select
-          name="category"
+        <CategorySelect
+          categories={categories}
           defaultValue={transaction.category}
           required
           className="rounded-lg bg-surface border border-border px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-        >
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+        />
         <input
           type="text"
           name="description"

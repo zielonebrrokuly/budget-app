@@ -1,4 +1,5 @@
 import { TransactionRow } from "@/components/TransactionRow";
+import { type CategoryOption } from "@/components/CategorySelect";
 import { formatCurrency } from "@/lib/format";
 
 type Transaction = {
@@ -16,7 +17,7 @@ export function TransactionsList({
   type,
 }: {
   transactions: Transaction[];
-  categories: readonly string[];
+  categories: CategoryOption[];
   type: "EXPENSE" | "INCOME";
 }) {
   const total = transactions.reduce((sum, t) => sum + t.amount, 0);

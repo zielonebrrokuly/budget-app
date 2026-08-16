@@ -7,7 +7,7 @@ import { MONTH_NAMES } from "@/lib/categories";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import {
   getAvailableYears,
-  getCategoryNames,
+  getCategories,
   getYearlyCategoryDetails,
   type CategoryMonthTransaction,
 } from "@/lib/queries";
@@ -32,24 +32,26 @@ export default async function PodsumowaniePage({
       getAvailableYears(),
       getYearlyCategoryDetails(year, "INCOME"),
       getYearlyCategoryDetails(year, "EXPENSE"),
-      getCategoryNames("INCOME"),
-      getCategoryNames("EXPENSE"),
+      getCategories("INCOME"),
+      getCategories("EXPENSE"),
     ]);
 
   const emptyTransactions: CategoryMonthTransaction[][] = Array.from({ length: 12 }, () => []);
 
-  const incomeRows = incomeCategories.map((category) => {
-    const entry = incomeTable.get(category);
+  const incomeRows = incomeCategories.map((c) => {
+    const entry = incomeTable.get(c.name);
     return {
-      category,
+      category: c.name,
+      parentName: c.parentName,
       values: entry?.values ?? new Array(12).fill(0),
       transactions: entry?.transactions ?? emptyTransactions,
     };
   });
-  const expenseRows = expenseCategories.map((category) => {
-    const entry = expenseTable.get(category);
+  const expenseRows = expenseCategories.map((c) => {
+    const entry = expenseTable.get(c.name);
     return {
-      category,
+      category: c.name,
+      parentName: c.parentName,
       values: entry?.values ?? new Array(12).fill(0),
       transactions: entry?.transactions ?? emptyTransactions,
     };
@@ -79,45 +81,103 @@ export default async function PodsumowaniePage({
   const monthlyByCategory: Record<string, number[]> = {};
   for (const row of expenseRows) monthlyByCategory[row.category] = row.values;
 
-  const dataRows = (
-    rows: { category: string; values: number[]; transactions: CategoryMonthTransaction[][] }[],
-    label: string,
-  ) => (
-    <>
-      <tr>
-        <td colSpan={15} className="sticky left-0 px-2 py-1">
-          <div className="rounded-lg bg-surface-alt text-xs uppercase tracking-wide text-muted font-semibold px-3 py-2">
-            {label}
-          </div>
+  type CategoryRow = {
+    category: string;
+    parentName: string | null;
+    values: number[];
+    transactions: CategoryMonthTransaction[][];
+  };
+
+  const categoryRow = (row: CategoryRow, indented: boolean) => {
+    const total = sumRow(row.values);
+    const avg = total / 12;
+    return (
+      <tr key={row.category} className="hover:bg-surface-alt/60">
+        <td
+          className={`sticky left-0 bg-surface px-3 py-1.5 whitespace-nowrap ${
+            indented ? "pl-7 text-muted text-sm" : "text-foreground"
+          }`}
+        >
+          {indented && "↳ "}
+          {row.category}
+        </td>
+        {row.values.map((v, i) => (
+          <CategoryMonthCell
+            key={i}
+            amount={v}
+            transactions={row.transactions[i]}
+            label={`${row.category} — ${MONTH_NAMES[i]} ${year}`}
+          />
+        ))}
+        <td className="px-2 py-1.5 text-right text-foreground font-medium tabular-nums">
+          {formatNumber(avg)}
+        </td>
+        <td className="px-2 py-1.5 text-right text-foreground font-medium tabular-nums">
+          {formatNumber(total)}
         </td>
       </tr>
-      {rows.map((row) => {
-        const total = sumRow(row.values);
-        const avg = total / 12;
-        return (
-          <tr key={row.category} className="hover:bg-surface-alt/60">
-            <td className="sticky left-0 bg-surface px-3 py-1.5 text-foreground whitespace-nowrap">
-              {row.category}
-            </td>
-            {row.values.map((v, i) => (
-              <CategoryMonthCell
-                key={i}
-                amount={v}
-                transactions={row.transactions[i]}
-                label={`${row.category} — ${MONTH_NAMES[i]} ${year}`}
-              />
-            ))}
-            <td className="px-2 py-1.5 text-right text-foreground font-medium tabular-nums">
-              {formatNumber(avg)}
-            </td>
-            <td className="px-2 py-1.5 text-right text-foreground font-medium tabular-nums">
-              {formatNumber(total)}
-            </td>
-          </tr>
+    );
+  };
+
+  const subtotalRow = (parentCategory: string, values: number[]) => {
+    const total = sumRow(values);
+    const avg = total / 12;
+    return (
+      <tr key={`${parentCategory}-subtotal`} className="border-t border-border/50">
+        <td className="sticky left-0 bg-surface px-3 py-1.5 pl-7 text-foreground text-sm font-medium whitespace-nowrap">
+          Razem: {parentCategory}
+        </td>
+        {values.map((v, i) => (
+          <td key={i} className="px-2 py-1.5 text-right text-foreground text-sm font-medium tabular-nums">
+            {formatNumber(v)}
+          </td>
+        ))}
+        <td className="px-2 py-1.5 text-right text-foreground text-sm font-medium tabular-nums">
+          {formatNumber(avg)}
+        </td>
+        <td className="px-2 py-1.5 text-right text-foreground text-sm font-medium tabular-nums">
+          {formatNumber(total)}
+        </td>
+      </tr>
+    );
+  };
+
+  // Podkategorie następują w `rows` zaraz po swojej kategorii głównej (kolejność
+  // z getCategories) — grupujemy je wizualnie i dodajemy wiersz "Razem" z sumą grupy.
+  const dataRows = (rows: CategoryRow[], label: string) => {
+    const elements: ReturnType<typeof categoryRow>[] = [];
+    let i = 0;
+    while (i < rows.length) {
+      const row = rows[i];
+      const children: CategoryRow[] = [];
+      let j = i + 1;
+      while (j < rows.length && rows[j].parentName === row.category) {
+        children.push(rows[j]);
+        j++;
+      }
+      elements.push(categoryRow(row, false));
+      for (const child of children) elements.push(categoryRow(child, true));
+      if (children.length > 0) {
+        const groupValues = row.values.map(
+          (v, idx) => v + children.reduce((sum, c) => sum + c.values[idx], 0),
         );
-      })}
-    </>
-  );
+        elements.push(subtotalRow(row.category, groupValues));
+      }
+      i = j;
+    }
+    return (
+      <>
+        <tr>
+          <td colSpan={15} className="sticky left-0 px-2 py-1">
+            <div className="rounded-lg bg-surface-alt text-xs uppercase tracking-wide text-muted font-semibold px-3 py-2">
+              {label}
+            </div>
+          </td>
+        </tr>
+        {elements}
+      </>
+    );
+  };
 
   const totalsRow = (label: string, values: number[], colorClass = "text-foreground") => {
     const total = sumRow(values);
@@ -227,7 +287,7 @@ export default async function PodsumowaniePage({
         <Card>
           <h2 className="font-medium text-foreground mb-4">Trend kategorii — {year}</h2>
           <CategoryTrendChart
-            categories={expenseCategories}
+            categories={expenseCategories.map((c) => c.name)}
             monthlyByCategory={monthlyByCategory}
             monthLabels={MONTH_SHORT}
           />

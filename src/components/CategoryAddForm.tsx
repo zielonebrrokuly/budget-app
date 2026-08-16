@@ -5,7 +5,13 @@ import { createCategory, type ActionState } from "@/lib/actions";
 
 const initialState: ActionState = {};
 
-export function CategoryAddForm({ type }: { type: "EXPENSE" | "INCOME" }) {
+export function CategoryAddForm({
+  type,
+  topLevelCategories,
+}: {
+  type: "EXPENSE" | "INCOME";
+  topLevelCategories: { id: string; name: string }[];
+}) {
   const [state, formAction, pending] = useActionState(createCategory, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -23,6 +29,18 @@ export function CategoryAddForm({ type }: { type: "EXPENSE" | "INCOME" }) {
         required
         className="flex-1 min-w-0 rounded-xl bg-surface-alt border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
       />
+      <select
+        name="parentId"
+        defaultValue=""
+        className="rounded-xl bg-surface-alt border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+        <option value="">— kategoria główna —</option>
+        {topLevelCategories.map((c) => (
+          <option key={c.id} value={c.id}>
+            Podkategoria: {c.name}
+          </option>
+        ))}
+      </select>
       <button
         type="submit"
         disabled={pending}

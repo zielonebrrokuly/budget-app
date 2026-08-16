@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { PeriodFilter } from "@/components/PeriodFilter";
 import { TransactionsList } from "@/components/TransactionsList";
+import { type CategoryOption } from "@/components/CategorySelect";
 
 type Transaction = {
   id: string;
@@ -37,11 +38,11 @@ export function TransactionsSearch({
   years: number[];
   year: number;
   month?: number;
-  filterCategories?: string[];
+  filterCategories?: CategoryOption[];
   category?: string;
   advancedActive?: boolean;
   transactions: Transaction[];
-  categories: readonly string[];
+  categories: CategoryOption[];
   type: "EXPENSE" | "INCOME";
   searchClassName?: string;
   listClassName?: string;

@@ -17,26 +17,32 @@ export default async function UstawieniaKategoriePage() {
         <h2 className="font-medium text-foreground mb-4">Kategorie wydatków</h2>
         <div className="flex flex-col gap-1 mb-4">
           {expenseCategories.map((c) => (
-            <CategoryRow key={c.id} category={c} />
+            <CategoryRow key={c.id} category={c} indented={!!c.parentId} />
           ))}
           {expenseCategories.length === 0 && (
             <p className="text-sm text-muted py-2">Brak kategorii.</p>
           )}
         </div>
-        <CategoryAddForm type="EXPENSE" />
+        <CategoryAddForm
+          type="EXPENSE"
+          topLevelCategories={expenseCategories.filter((c) => !c.parentId)}
+        />
       </Card>
 
       <Card>
         <h2 className="font-medium text-foreground mb-4">Kategorie przychodów</h2>
         <div className="flex flex-col gap-1 mb-4">
           {incomeCategories.map((c) => (
-            <CategoryRow key={c.id} category={c} />
+            <CategoryRow key={c.id} category={c} indented={!!c.parentId} />
           ))}
           {incomeCategories.length === 0 && (
             <p className="text-sm text-muted py-2">Brak kategorii.</p>
           )}
         </div>
-        <CategoryAddForm type="INCOME" />
+        <CategoryAddForm
+          type="INCOME"
+          topLevelCategories={incomeCategories.filter((c) => !c.parentId)}
+        />
       </Card>
     </div>
   );
