@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/lib/auth";
+import { SIDEBAR_WIDTH_REM } from "@/lib/layout";
 import type { ReactElement } from "react";
 
 const iconProps = {
@@ -74,6 +75,16 @@ function GearIcon() {
   );
 }
 
+function LogoutIcon() {
+  return (
+    <svg {...iconProps} aria-hidden="true">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
 const MAIN_LINKS = [
   { href: "/", label: "Dashboard", Icon: HomeIcon },
   { href: "/transakcje", label: "Transakcje", Icon: TransactionsIcon },
@@ -109,6 +120,32 @@ function NavLink({
   );
 }
 
+function SidebarLink({
+  href,
+  label,
+  Icon,
+  active,
+}: {
+  href: string;
+  label: string;
+  Icon: () => ReactElement;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+        active
+          ? "bg-accent/15 text-foreground"
+          : "text-muted hover:text-foreground hover:bg-surface-alt"
+      }`}
+    >
+      <Icon />
+      {label}
+    </Link>
+  );
+}
+
 export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
   const pathname = usePathname();
 
@@ -117,18 +154,54 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <header className="border-b border-border bg-surface/60 backdrop-blur sticky top-0 z-10">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center gap-2 sm:gap-6">
-        <span className="font-semibold text-foreground tracking-tight mr-2 shrink-0">
+    <>
+      {/* Telefon/tablet: pasek na górze. */}
+      <header className="lg:hidden border-b border-border bg-surface/60 backdrop-blur sticky top-0 z-10">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center gap-2 sm:gap-6">
+          <span className="font-semibold text-foreground tracking-tight mr-2 shrink-0">
+            Budżet
+          </span>
+          <nav className="flex gap-5 overflow-x-auto self-stretch no-scrollbar">
+            {MAIN_LINKS.map(({ href, label, Icon }) => (
+              <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
+            ))}
+          </nav>
+          <div className="ml-auto flex items-center gap-4 shrink-0 self-stretch">
+            <NavLink
+              href={SETTINGS_LINK.href}
+              label={SETTINGS_LINK.label}
+              Icon={SETTINGS_LINK.Icon}
+              active={isActive(SETTINGS_LINK.href)}
+            />
+            {authEnabled && (
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
+                >
+                  Wyloguj
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Desktop: boczna nawigacja. */}
+      <aside
+        style={{ width: `${SIDEBAR_WIDTH_REM}rem` }}
+        className="hidden lg:flex lg:flex-col lg:shrink-0 lg:sticky lg:top-0 lg:h-screen border-r border-border bg-surface/60 backdrop-blur px-3 py-4 gap-1"
+      >
+        <span className="font-semibold text-foreground tracking-tight px-3 py-2 mb-2">
           Budżet
         </span>
-        <nav className="flex gap-5 overflow-x-auto self-stretch no-scrollbar">
+        <nav className="flex flex-col gap-1">
           {MAIN_LINKS.map(({ href, label, Icon }) => (
-            <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
+            <SidebarLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-4 shrink-0 self-stretch">
-          <NavLink
+        <div className="mt-auto flex flex-col gap-1">
+          <SidebarLink
             href={SETTINGS_LINK.href}
             label={SETTINGS_LINK.label}
             Icon={SETTINGS_LINK.Icon}
@@ -138,14 +211,15 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
             <form action={logout}>
               <button
                 type="submit"
-                className="px-3 py-1.5 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
               >
+                <LogoutIcon />
                 Wyloguj
               </button>
             </form>
           )}
         </div>
-      </div>
-    </header>
+      </aside>
+    </>
   );
 }

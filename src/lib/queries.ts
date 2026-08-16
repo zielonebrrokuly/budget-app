@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import { DASHBOARD_SECTIONS, DASHBOARD_SECTION_ORDER_KEY, type DashboardSectionId } from "./dashboardSections";
 import { FOOD_BUDGET_CATEGORY, FOOD_BUDGET_DESCRIPTION } from "./foodBudget";
 import { TILE_KEYS, type TileKey } from "./tiles";
+import { RECENT_TRANSACTIONS_LIMIT_KEY, DEFAULT_RECENT_TRANSACTIONS_LIMIT } from "./recentTransactions";
 
 export async function getDashboardSectionOrder(): Promise<DashboardSectionId[]> {
   const setting = await prisma.setting.findUnique({ where: { key: DASHBOARD_SECTION_ORDER_KEY } });
@@ -227,4 +228,19 @@ export async function getYearlyCategoryDetails(
     });
   }
   return table;
+}
+
+export async function getRecentTransactionsLimit(): Promise<number> {
+  const setting = await prisma.setting.findUnique({
+    where: { key: RECENT_TRANSACTIONS_LIMIT_KEY },
+  });
+  const parsed = setting ? Number(setting.value) : NaN;
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_RECENT_TRANSACTIONS_LIMIT;
+}
+
+export async function getRecentTransactions(limit: number) {
+  return prisma.transaction.findMany({
+    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    take: limit,
+  });
 }

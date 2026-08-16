@@ -5,6 +5,7 @@ import { prisma } from "./prisma";
 import { DASHBOARD_SECTION_ORDER_KEY, type DashboardSectionId } from "./dashboardSections";
 import { FOOD_BUDGET_CATEGORY, FOOD_BUDGET_DESCRIPTION, DEFAULT_FOOD_BUDGET } from "./foodBudget";
 import { TILE_KEYS } from "./tiles";
+import { RECENT_TRANSACTIONS_LIMIT_KEY } from "./recentTransactions";
 import { evalAmount } from "./calc";
 
 export type ActionState = { error?: string; success?: boolean };
@@ -338,6 +339,30 @@ export async function updateTileVisibility(
         });
       }),
     );
+
+    revalidatePath("/");
+    revalidatePath("/ustawienia/kafelki");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Coś poszło nie tak." };
+  }
+}
+
+export async function updateRecentTransactionsLimit(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const limit = Number(formData.get("limit"));
+    if (!Number.isInteger(limit) || limit < 1) {
+      return { error: "Podaj liczbę całkowitą większą od zera." };
+    }
+
+    await prisma.setting.upsert({
+      where: { key: RECENT_TRANSACTIONS_LIMIT_KEY },
+      create: { key: RECENT_TRANSACTIONS_LIMIT_KEY, value: String(limit) },
+      update: { value: String(limit) },
+    });
 
     revalidatePath("/");
     revalidatePath("/ustawienia/kafelki");

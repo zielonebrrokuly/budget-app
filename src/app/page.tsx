@@ -4,6 +4,7 @@ import { DashboardSections } from "@/components/DashboardSections";
 import { DashboardTiles } from "@/components/DashboardTiles";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { PlannedExpensesList } from "@/components/PlannedExpensesList";
+import { RecentTransactionsList } from "@/components/RecentTransactionsList";
 import { MONTH_NAMES } from "@/lib/categories";
 import type { DashboardSectionId } from "@/lib/dashboardSections";
 import {
@@ -11,6 +12,8 @@ import {
   getDashboardSectionOrder,
   getMonthTotals,
   getPlannedExpenses,
+  getRecentTransactions,
+  getRecentTransactionsLimit,
   getRunningBalance,
   getTileVisibility,
 } from "@/lib/queries";
@@ -28,7 +31,7 @@ export default async function DashboardPage({
   const year = now.getFullYear();
   const selectedMonth = params.month !== undefined ? Number(params.month) : now.getMonth();
 
-  const [totals, runningBalance, breakdown, plannedExpenses, tileVisibility, sectionOrder] =
+  const [totals, runningBalance, breakdown, plannedExpenses, tileVisibility, sectionOrder, recentLimit] =
     await Promise.all([
       getMonthTotals(year, selectedMonth),
       getRunningBalance(year, selectedMonth),
@@ -36,7 +39,14 @@ export default async function DashboardPage({
       getPlannedExpenses(year, selectedMonth),
       getTileVisibility(),
       getDashboardSectionOrder(),
+      getRecentTransactionsLimit(),
     ]);
+
+  // Liczba pokazanych ostatnich transakcji nie przekracza limitu z Ustawień,
+  // ale też nie jest większa niż liczba wierszy w legendzie wykresu kategorii —
+  // żeby obie kolumny (lista i wykres) miały zbliżoną wysokość.
+  const visibleRecentCount = breakdown.length > 0 ? Math.min(recentLimit, breakdown.length) : recentLimit;
+  const recentTransactions = await getRecentTransactions(visibleRecentCount);
 
   const monthLabel = `${MONTH_NAMES[selectedMonth]} ${year}`;
 
@@ -54,10 +64,16 @@ export default async function DashboardPage({
     ) : undefined,
 
     categoryChart: (
-      <Card>
-        <h2 className="font-medium text-foreground mb-4">Wydatki wg kategorii — {monthLabel}</h2>
-        <CategoryPieChart data={breakdown} />
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <h2 className="font-medium text-foreground mb-4">Ostatnie transakcje</h2>
+          <RecentTransactionsList transactions={recentTransactions} />
+        </Card>
+        <Card>
+          <h2 className="font-medium text-foreground mb-4">Wydatki wg kategorii — {monthLabel}</h2>
+          <CategoryPieChart data={breakdown} />
+        </Card>
+      </div>
     ),
 
     toPay: (
