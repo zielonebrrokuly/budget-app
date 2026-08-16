@@ -123,20 +123,39 @@ export async function getRunningBalance(year: number, throughMonth: number) {
   return (incomeAgg._sum.amount ?? 0) - (expenseAgg._sum.amount ?? 0);
 }
 
+// Podział na kategorie za dany miesiąc. Kwoty z podkategorii są doliczane do
+// kategorii nadrzędnej — wykres pokazuje tylko kategorie główne.
 export async function getCategoryBreakdown(
   year: number,
   month: number,
   type: "EXPENSE" | "INCOME",
 ) {
   const { start, end } = monthRange(year, month);
-  const rows = await prisma.transaction.groupBy({
-    by: ["category"],
-    where: { type, date: { gte: start, lt: end } },
-    _sum: { amount: true },
-  });
-  return rows
-    .map((r) => ({ category: r.category, amount: r._sum.amount ?? 0 }))
-    .sort((a, b) => b.amount - a.amount);
+  const [rows, categories] = await Promise.all([
+    prisma.transaction.groupBy({
+      by: ["category"],
+      where: { type, date: { gte: start, lt: end } },
+      _sum: { amount: true },
+    }),
+    prisma.category.findMany({ where: { type }, select: { id: true, name: true, parentId: true } }),
+  ]);
+
+  const nameById = new Map(categories.map((c) => [c.id, c.name]));
+  const parentNameOf = new Map<string, string>();
+  for (const c of categories) {
+    const parentName = c.parentId ? nameById.get(c.parentId) : undefined;
+    if (parentName) parentNameOf.set(c.name, parentName);
+  }
+
+  const totals = new Map<string, number>();
+  for (const r of rows) {
+    const key = parentNameOf.get(r.category) ?? r.category;
+    totals.set(key, (totals.get(key) ?? 0) + (r._sum.amount ?? 0));
+  }
+
+  return Array.from(totals, ([category, amount]) => ({ category, amount })).sort(
+    (a, b) => b.amount - a.amount,
+  );
 }
 
 export async function getTransactions(

@@ -6,6 +6,7 @@ import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { PlannedExpensesList } from "@/components/PlannedExpensesList";
 import { RecentTransactionsList } from "@/components/RecentTransactionsList";
 import { MONTH_NAMES } from "@/lib/categories";
+import { categoryChartRowEquivalent } from "@/lib/categoryChart";
 import type { DashboardSectionId } from "@/lib/dashboardSections";
 import {
   getCategoryBreakdown,
@@ -43,9 +44,12 @@ export default async function DashboardPage({
     ]);
 
   // Liczba pokazanych ostatnich transakcji nie przekracza limitu z Ustawień,
-  // ale też nie jest większa niż liczba wierszy w legendzie wykresu kategorii —
-  // żeby obie kolumny (lista i wykres) miały zbliżoną wysokość.
-  const visibleRecentCount = breakdown.length > 0 ? Math.min(recentLimit, breakdown.length) : recentLimit;
+  // ale też nie jest większa niż „wysokość" karty wykresu obok — żeby obie
+  // kolumny kończyły się mniej więcej na tej samej wysokości.
+  const visibleRecentCount =
+    breakdown.length > 0
+      ? Math.min(recentLimit, categoryChartRowEquivalent(breakdown.length))
+      : recentLimit;
   const recentTransactions = await getRecentTransactions(visibleRecentCount);
 
   const monthLabel = `${MONTH_NAMES[selectedMonth]} ${year}`;
