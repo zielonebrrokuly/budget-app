@@ -141,7 +141,12 @@ const MAIN_LINKS = [
 
 const SETTINGS_LINK = { href: "/ustawienia", label: "Ustawienia", Icon: GearIcon };
 
-function NavLink({
+// Kolejność zakładek dolnego paska. Liczba pozycji musi się zgadzać z dzielnikiem
+// w .tabbar-thumb (globals.css), bo z niego wynika szerokość suwaka.
+const TAB_LINKS = [...MAIN_LINKS, SETTINGS_LINK];
+
+// Zakładka dolnego paska (telefon): ikona nad podpisem, aktywna w pigułce.
+function TabBarLink({
   href,
   label,
   Icon,
@@ -155,15 +160,13 @@ function NavLink({
   return (
     <Link
       href={href}
-      aria-label={label}
-      className={`flex items-center gap-1.5 h-full px-0.5 translate-y-px text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-        active
-          ? "border-accent text-foreground"
-          : "border-transparent text-muted hover:text-foreground"
+      aria-current={active ? "page" : undefined}
+      className={`relative z-10 flex flex-1 min-w-0 flex-col items-center gap-0.5 rounded-2xl px-1 py-1.5 transition-colors ${
+        active ? "text-accent" : "text-muted"
       }`}
     >
       <Icon />
-      <span className="hidden sm:inline">{label}</span>
+      <span className="text-[10px] font-medium leading-tight truncate max-w-full">{label}</span>
     </Link>
   );
 }
@@ -205,40 +208,50 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
   if (pathname === "/login") return null;
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const activeTabIndex = TAB_LINKS.findIndex(({ href }) => isActive(href));
 
   return (
     <>
-      {/* Telefon/tablet: pasek na górze. */}
+      {/* Telefon/tablet: wąski pasek na górze — nawigacja jest na dole, więc
+          zostaje tu tylko nazwa i wylogowanie. */}
       <header className="lg:hidden border-b border-border bg-surface/60 backdrop-blur sticky top-0 z-10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center gap-2 sm:gap-6">
-          <span className="font-semibold text-foreground tracking-tight mr-2 shrink-0">
-            Budżet
-          </span>
-          <nav className="flex gap-5 overflow-x-auto self-stretch no-scrollbar">
-            {MAIN_LINKS.map(({ href, label, Icon }) => (
-              <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center gap-4 shrink-0 self-stretch">
-            <NavLink
-              href={SETTINGS_LINK.href}
-              label={SETTINGS_LINK.label}
-              Icon={SETTINGS_LINK.Icon}
-              active={isActive(SETTINGS_LINK.href)}
-            />
-            {authEnabled && (
-              <form action={logout}>
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
-                >
-                  Wyloguj
-                </button>
-              </form>
-            )}
-          </div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center gap-2">
+          <span className="font-semibold text-foreground tracking-tight shrink-0">Budżet</span>
+          {authEnabled && (
+            <form action={logout} className="ml-auto">
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
+              >
+                Wyloguj
+              </button>
+            </form>
+          )}
         </div>
       </header>
+
+      {/* Telefon/tablet: pasek zakładek na dole. pb uwzględnia pasek gestów
+          iPhone'a, żeby zakładki nie chowały się pod nim. */}
+      <nav
+        aria-label="Nawigacja główna"
+        className="lg:hidden fixed inset-x-0 bottom-0 z-20 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      >
+        {/* Siatka bez odstępów — suwak ma szerokość dokładnie jednej zakładki. */}
+        <div
+          className="tabbar-track relative flex items-center rounded-3xl border border-border bg-surface/95 backdrop-blur px-2 py-2 shadow-lg shadow-black/30"
+          style={{ ["--tab" as string]: Math.max(activeTabIndex, 0) }}
+        >
+          {activeTabIndex >= 0 && (
+            <span
+              aria-hidden="true"
+              className="tabbar-thumb pointer-events-none absolute top-2 left-2 rounded-2xl bg-accent/15"
+            />
+          )}
+          {TAB_LINKS.map(({ href, label, Icon }) => (
+            <TabBarLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
+          ))}
+        </div>
+      </nav>
 
       {/* Desktop: boczna nawigacja. */}
       <aside

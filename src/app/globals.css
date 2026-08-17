@@ -111,3 +111,28 @@ html {
     transition: none;
   }
 }
+
+/* Suwak dolnego paska zakładek — ta sama zasada co przy miesiącach.
+   Dzielnik 4 odpowiada liczbie zakładek (MAIN_LINKS + Ustawienia);
+   przy dokładaniu zakładki trzeba go zmienić razem z Nav.tsx. */
+@property --tab {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.tabbar-track {
+  transition: --tab 300ms ease-out;
+}
+
+.tabbar-thumb {
+  width: calc((100% - 1rem) / 4);
+  height: calc(100% - 1rem);
+  transform: translateX(calc(var(--tab) * 100%));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-track {
+    transition: none;
+  }
+}
