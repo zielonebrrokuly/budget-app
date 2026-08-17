@@ -15,5 +15,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Ikony i manifest muszą być dostępne bez zalogowania — inaczej przeglądarka
+  // dostaje w ich miejsce przekierowanie na /login i nie pokazuje ikony
+  // ani nie da się zainstalować aplikacji.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.webmanifest).*)",
+  ],
 };
