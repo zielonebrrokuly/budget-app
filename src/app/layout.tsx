@@ -34,6 +34,14 @@ export default function RootLayout({
       lang="pl"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Ustawia stan zwinięcia menu zanim strona się namaluje (bez mrugnięcia). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem('sidebar_collapsed')==='1'){document.documentElement.dataset.sidebarCollapsed='1'}}catch(e){}`,
+          }}
+        />
+      </head>
       <body
         className="min-h-full flex flex-col lg:flex-row text-foreground bg-fixed bg-[linear-gradient(165deg,var(--background)_0%,var(--background-2)_55%,var(--background)_100%)]"
       >

@@ -12,7 +12,7 @@ import { AmountInput } from "@/components/AmountInput";
 
 const initialState: ActionState = {};
 
-type PlannedExpenseItem = { id: string; name: string; amount: number; isPaid: boolean };
+type PlannedExpenseItem = { id: string; name: string; amount: number | null; isPaid: boolean };
 
 export function PlannedExpensesList({
   expenses,
@@ -43,13 +43,16 @@ export function PlannedExpensesList({
     });
   }
 
-  const total = items.reduce((sum, item) => sum + item.amount, 0);
-  const paidTotal = items.filter((item) => item.isPaid).reduce((sum, item) => sum + item.amount, 0);
+  const doneCount = items.filter((item) => item.isPaid).length;
+  const total = items.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  const paidTotal = items
+    .filter((item) => item.isPaid)
+    .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
   return (
     <div className="flex flex-col gap-3">
       {items.length === 0 ? (
-        <p className="text-sm text-muted">Brak pozycji do zapłacenia w tym miesiącu.</p>
+        <p className="text-sm text-muted">Brak zadań w tym miesiącu.</p>
       ) : (
         <div className="flex flex-col gap-1">
           {items.map((item) => (
@@ -68,11 +71,13 @@ export function PlannedExpensesList({
               >
                 {item.name}
               </span>
-              <span
-                className={`text-sm font-medium tabular-nums ${item.isPaid ? "text-muted line-through" : "text-foreground"}`}
-              >
-                {formatCurrency(item.amount)}
-              </span>
+              {item.amount !== null && (
+                <span
+                  className={`text-sm font-medium tabular-nums ${item.isPaid ? "text-muted line-through" : "text-foreground"}`}
+                >
+                  {formatCurrency(item.amount)}
+                </span>
+              )}
               <form action={deletePlannedExpense.bind(null, item.id)}>
                 <button
                   type="submit"
@@ -89,7 +94,8 @@ export function PlannedExpensesList({
 
       {items.length > 0 && (
         <p className="text-xs text-muted px-3 pt-1 border-t border-border">
-          Zapłacono {formatCurrency(paidTotal)} z {formatCurrency(total)}
+          Zrobione {doneCount} z {items.length}
+          {total > 0 && ` · zapłacono ${formatCurrency(paidTotal)} z ${formatCurrency(total)}`}
         </p>
       )}
 
@@ -104,8 +110,7 @@ export function PlannedExpensesList({
           className="flex-1 min-w-[140px] rounded-xl bg-surface-alt border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         />
         <AmountInput
-          placeholder="Kwota"
-          required
+          placeholder="Kwota (opc.)"
           className="w-28 rounded-xl bg-surface-alt border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         />
         <button

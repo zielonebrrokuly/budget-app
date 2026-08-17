@@ -12,6 +12,22 @@
   --accent-hover: #3d78e0;
   --positive: #3ddc9a;
   --negative: #f76a6a;
+  --sidebar-w: 15rem;
+}
+
+/* Zwinięte menu boczne. Sterowane atrybutem na <html>, a nie stanem Reacta,
+   żeby szerokość i etykiety były poprawne już przy pierwszym malowaniu —
+   inaczej menu mrugałoby rozwinięte przed hydracją. */
+:root[data-sidebar-collapsed="1"] {
+  --sidebar-w: 4.5rem;
+}
+
+:root[data-sidebar-collapsed="1"] .sidebar-label {
+  display: none;
+}
+
+:root[data-sidebar-collapsed="1"] .sidebar-row {
+  justify-content: center;
 }
 
 @theme inline {

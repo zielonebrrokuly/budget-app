@@ -3,8 +3,42 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/lib/auth";
-import { SIDEBAR_WIDTH_REM } from "@/lib/layout";
-import type { ReactElement } from "react";
+import { useSyncExternalStore, type ReactElement } from "react";
+
+// Stan zwinięcia menu trzymamy w localStorage (preferencja per urządzenie, nie
+// per konto) i dublujemy na <html data-sidebar-collapsed>, bo to atrybut steruje
+// CSS-em — dzięki temu skrypt w layoucie ustawia wygląd przed pierwszym malowaniem.
+const SIDEBAR_STORAGE_KEY = "sidebar_collapsed";
+const sidebarListeners = new Set<() => void>();
+
+function subscribeSidebar(onChange: () => void) {
+  sidebarListeners.add(onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    sidebarListeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function getSidebarCollapsed() {
+  try {
+    return localStorage.getItem(SIDEBAR_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setSidebarCollapsed(collapsed: boolean) {
+  try {
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, collapsed ? "1" : "0");
+  } catch {}
+  if (collapsed) {
+    document.documentElement.dataset.sidebarCollapsed = "1";
+  } else {
+    delete document.documentElement.dataset.sidebarCollapsed;
+  }
+  sidebarListeners.forEach((listener) => listener());
+}
 
 const iconProps = {
   width: 24,
@@ -75,6 +109,20 @@ function GearIcon() {
   );
 }
 
+function CollapseIcon({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg {...iconProps} width={20} height={20} aria-hidden="true">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <line x1="9" y1="4" x2="9" y2="20" />
+      {collapsed ? (
+        <polyline points="13.5 9.5 16.5 12 13.5 14.5" />
+      ) : (
+        <polyline points="16.5 9.5 13.5 12 16.5 14.5" />
+      )}
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg {...iconProps} aria-hidden="true">
@@ -134,20 +182,25 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+      title={label}
+      aria-label={label}
+      className={`sidebar-row flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
         active
           ? "bg-accent/15 text-foreground"
           : "text-muted hover:text-foreground hover:bg-surface-alt"
       }`}
     >
       <Icon />
-      {label}
+      <span className="sidebar-label">{label}</span>
     </Link>
   );
 }
 
 export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
   const pathname = usePathname();
+  // Serwer nie zna localStorage — na serwerze zawsze "rozwinięte"; o wygląd
+  // przed hydracją dba skrypt + CSS, więc nie ma mrugnięcia.
+  const collapsed = useSyncExternalStore(subscribeSidebar, getSidebarCollapsed, () => false);
 
   if (pathname === "/login") return null;
 
@@ -189,12 +242,24 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
 
       {/* Desktop: boczna nawigacja. */}
       <aside
-        style={{ width: `${SIDEBAR_WIDTH_REM}rem` }}
+        style={{ width: "var(--sidebar-w)" }}
         className="hidden lg:flex lg:flex-col lg:shrink-0 lg:sticky lg:top-0 lg:h-screen border-r border-border bg-surface/60 backdrop-blur px-3 py-4 gap-1"
       >
-        <span className="font-semibold text-foreground tracking-tight px-3 py-2 mb-2">
-          Budżet
-        </span>
+        <div className="sidebar-row flex items-center justify-between mb-2">
+          <span className="sidebar-label font-semibold text-foreground tracking-tight px-3">
+            Budżet
+          </span>
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(!collapsed)}
+            title={collapsed ? "Rozwiń menu" : "Zwiń menu"}
+            aria-label={collapsed ? "Rozwiń menu" : "Zwiń menu"}
+            aria-expanded={!collapsed}
+            className="shrink-0 p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
+          >
+            <CollapseIcon collapsed={collapsed} />
+          </button>
+        </div>
         <nav className="flex flex-col gap-1">
           {MAIN_LINKS.map(({ href, label, Icon }) => (
             <SidebarLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
@@ -211,10 +276,11 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
             <form action={logout}>
               <button
                 type="submit"
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
+                title="Wyloguj"
+                className="sidebar-row w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
               >
                 <LogoutIcon />
-                Wyloguj
+                <span className="sidebar-label">Wyloguj</span>
               </button>
             </form>
           )}

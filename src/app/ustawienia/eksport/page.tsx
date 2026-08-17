@@ -25,7 +25,7 @@ export default function UstawieniaEksportPage() {
         <div>
           <h2 className="font-medium text-foreground mb-1">Pełny backup</h2>
           <p className="text-sm text-muted">
-            Pobierz komplet danych (transakcje, kategorie, historia, do zapłacenia, ustawienia)
+            Pobierz komplet danych (transakcje, kategorie, historia, To Do, ustawienia)
             jako plik JSON — przydatne do przeniesienia na nowy serwer lub nową wersję aplikacji.
           </p>
         </div>

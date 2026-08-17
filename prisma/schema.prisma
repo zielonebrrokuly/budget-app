@@ -46,7 +46,7 @@ model PlannedExpense {
   year      Int
   month     Int // 0-11
   name      String
-  amount    Float
+  amount    Float? // opcjonalna — pozycja może być zwykłym zadaniem bez kwoty
   isPaid    Boolean  @default(false)
   createdAt DateTime @default(now())
 

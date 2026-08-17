@@ -390,7 +390,11 @@ export async function addPlannedExpense(
     const month = Number(formData.get("month"));
     const name = String(formData.get("name") ?? "").trim();
     if (!name) return { error: "Podaj nazwę." };
-    const amount = parseAmount(formData.get("amount"));
+
+    // Kwota jest opcjonalna — pozycja bez kwoty to zwykłe zadanie do odhaczenia.
+    // Jeśli jednak coś wpisano, musi to być poprawna kwota.
+    const rawAmount = String(formData.get("amount") ?? "").trim();
+    const amount = rawAmount ? parseAmount(rawAmount) : null;
 
     await prisma.plannedExpense.create({ data: { year, month, name, amount } });
 

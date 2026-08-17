@@ -74,7 +74,7 @@ export default async function DashboardPage({
           <RecentTransactionsList transactions={recentTransactions} />
         </Card>
         <Card>
-          <h2 className="font-medium text-foreground mb-4">Wydatki wg kategorii — {monthLabel}</h2>
+          <h2 className="font-medium text-foreground mb-4">Wydatki</h2>
           <CategoryPieChart data={breakdown} />
         </Card>
       </div>
@@ -82,7 +82,7 @@ export default async function DashboardPage({
 
     toPay: (
       <Card>
-        <h2 className="font-medium text-foreground mb-4">Do zapłacenia — {monthLabel}</h2>
+        <h2 className="font-medium text-foreground mb-4">To Do</h2>
         <PlannedExpensesList expenses={plannedExpenses} year={year} month={selectedMonth} />
       </Card>
     ),
