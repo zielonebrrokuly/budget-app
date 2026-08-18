@@ -2,6 +2,7 @@ import { Card } from "@/components/Card";
 import { CategoryPieChart } from "@/components/CategoryPieChart";
 import { DashboardSections } from "@/components/DashboardSections";
 import { DashboardTiles } from "@/components/DashboardTiles";
+import { MonthPicker } from "@/components/MonthPicker";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { PlannedExpensesList } from "@/components/PlannedExpensesList";
 import { RecentTransactionsList } from "@/components/RecentTransactionsList";
@@ -94,6 +95,7 @@ export default async function DashboardPage({
           widać w przełączniku poniżej, a nazwę sekcji w nawigacji. */}
       <h1 className="sr-only">Dashboard — {monthLabel}</h1>
 
+      <MonthPicker selectedMonth={selectedMonth} year={year} />
       <MonthSwitcher selectedMonth={selectedMonth} />
 
       <DashboardSections initialOrder={sectionOrder} sections={sections} />

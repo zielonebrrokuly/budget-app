@@ -62,23 +62,11 @@ html {
   display: none;
 }
 
-/* Suwak przełącznika miesięcy.
-   Indeksy rejestrujemy przez @property jako <number> — bez tego przeglądarka
-   traktuje je jako nietypowane tokeny, nie potrafi interpolować i zależny
-   transform w ogóle nie drgnie. Animujemy same zmienne na torze, a transform
-   suwaka przelicza się z nich co klatkę. */
-@property --col-m {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
-@property --row-m {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
+/* Suwak przełącznika miesięcy (tylko desktop — na telefonie jest MonthPicker).
+   Indeks rejestrujemy przez @property jako <number>: bez tego przeglądarka
+   traktuje go jako nietypowany token, nie potrafi interpolować i zależny
+   transform w ogóle nie drgnie. Animujemy samą zmienną na torze, a transform
+   suwaka przelicza się z niej co klatkę. */
 @property --col-d {
   syntax: "<number>";
   inherits: true;
@@ -86,24 +74,13 @@ html {
 }
 
 .month-track {
-  transition:
-    --col-m 300ms ease-out,
-    --row-m 300ms ease-out,
-    --col-d 300ms ease-out;
+  transition: --col-d 300ms ease-out;
 }
 
 .month-thumb {
-  width: calc((100% - 0.5rem) / 6);
-  height: calc((100% - 0.5rem) / 2);
-  transform: translate(calc(var(--col-m) * 100%), calc(var(--row-m) * 100%));
-}
-
-@media (min-width: 64rem) {
-  .month-thumb {
-    width: calc((100% - 0.5rem) / 12);
-    height: calc(100% - 0.5rem);
-    transform: translate(calc(var(--col-d) * 100%), 0);
-  }
+  width: calc((100% - 0.5rem) / 12);
+  height: calc(100% - 0.5rem);
+  transform: translateX(calc(var(--col-d) * 100%));
 }
 
 @media (prefers-reduced-motion: reduce) {

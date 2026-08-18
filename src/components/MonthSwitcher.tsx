@@ -10,13 +10,8 @@ const MONTH_SHORT = MONTH_NAMES.map((m) => m.slice(0, 3));
 export function MonthSwitcher({ selectedMonth }: { selectedMonth: number }) {
   return (
     <div
-      className="month-track relative grid grid-cols-6 lg:grid-cols-12 rounded-xl bg-surface border border-border p-1"
-      style={{
-        // Telefon: 6 kolumn w 2 rzędach. Desktop: 12 kolumn w jednym rzędzie.
-        ["--col-m" as string]: selectedMonth % 6,
-        ["--row-m" as string]: Math.floor(selectedMonth / 6),
-        ["--col-d" as string]: selectedMonth,
-      }}
+      className="month-track relative hidden lg:grid grid-cols-12 rounded-xl bg-surface border border-border p-1"
+      style={{ ["--col-d" as string]: selectedMonth }}
     >
       <span
         aria-hidden="true"
