@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { MONTH_NAMES } from "@/lib/categories";
 
-// Wersja na telefon: jeden miesiąc z pełną nazwą, a po dotknięciu natywny
-// wybierak systemu — na iOS to właśnie to przewijane koło. Świadomie nie piszemy
-// własnego: natywny jest dostępny z klawiatury i czytników ekranu za darmo.
+// Wersja na telefon: miesiąc wygląda jak tytuł strony, a nie jak pole formularza.
+// Natywny <select> leży niewidocznie na wierzchu, więc dotknięcie otwiera
+// systemowy wybierak (na iOS przewijane koło) i za darmo mamy obsługę
+// klawiatury oraz czytników ekranu.
 export function MonthPicker({
   selectedMonth,
   year,
@@ -16,19 +17,12 @@ export function MonthPicker({
   const router = useRouter();
 
   return (
-    <div className="relative lg:hidden">
-      <select
-        value={selectedMonth}
-        aria-label="Wybierz miesiąc"
-        onChange={(e) => router.push(`/?month=${e.target.value}`)}
-        className="w-full appearance-none rounded-xl bg-surface border border-border pl-4 pr-10 py-3 text-base font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-      >
-        {MONTH_NAMES.map((name, i) => (
-          <option key={name} value={i}>
-            {name} {year}
-          </option>
-        ))}
-      </select>
+    // Ujemne marginesy zrównoważone paddingiem: pole dotyku rośnie do ~44 px,
+    // a element nadal zajmuje w układzie tyle co sam tekst.
+    <div className="relative inline-flex items-center gap-1.5 self-start -m-2 p-2 rounded-lg focus-within:ring-2 focus-within:ring-accent lg:hidden">
+      <span className="text-xl font-semibold text-foreground">
+        {MONTH_NAMES[selectedMonth]} {year}
+      </span>
       <svg
         aria-hidden="true"
         width="18"
@@ -39,10 +33,22 @@ export function MonthPicker({
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+        className="text-muted"
       >
         <polyline points="6 9 12 15 18 9" />
       </svg>
+      <select
+        value={selectedMonth}
+        aria-label="Wybierz miesiąc"
+        onChange={(e) => router.push(`/?month=${e.target.value}`)}
+        className="absolute inset-0 w-full h-full appearance-none opacity-0"
+      >
+        {MONTH_NAMES.map((name, i) => (
+          <option key={name} value={i}>
+            {name} {year}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
