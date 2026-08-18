@@ -212,25 +212,8 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
 
   return (
     <>
-      {/* Telefon/tablet: samo wylogowanie. Celowo BEZ sticky — pasek przewija
-          się razem z treścią, więc ikona znika przy przewijaniu w dół i wraca
-          dopiero na samej górze. Nawigacja jest na dolnym pasku. */}
-      {authEnabled && (
-        <header className="lg:hidden">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 flex justify-end">
-            <form action={logout}>
-              <button
-                type="submit"
-                aria-label="Wyloguj"
-                title="Wyloguj"
-                className="flex p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
-              >
-                <LogoutIcon />
-              </button>
-            </form>
-          </div>
-        </header>
-      )}
+      {/* Na telefonie nie ma górnego paska — nawigacja jest na dole, a
+          wylogowanie w Ustawieniach → Konto. */}
 
       {/* Telefon/tablet: pasek zakładek na dole. pb uwzględnia pasek gestów
           iPhone'a, żeby zakładki nie chowały się pod nim. */}

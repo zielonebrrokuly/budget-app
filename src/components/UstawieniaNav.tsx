@@ -9,12 +9,17 @@ const LINKS = [
   { href: "/ustawienia/eksport", label: "Eksport" },
 ];
 
-export function UstawieniaNav() {
+// Zakładkę „Konto" pokazujemy tylko gdy działa logowanie — bez hasła nie ma
+// sesji, więc nie byłoby tam czego ustawiać.
+export function UstawieniaNav({ authEnabled = false }: { authEnabled?: boolean }) {
   const pathname = usePathname();
+  const links = authEnabled
+    ? [...LINKS, { href: "/ustawienia/konto", label: "Konto" }]
+    : LINKS;
 
   return (
-    <nav className="flex gap-1 border-b border-border pb-4">
-      {LINKS.map((link) => {
+    <nav className="flex flex-wrap gap-1 border-b border-border pb-4">
+      {links.map((link) => {
         const active = pathname === link.href;
         return (
           <Link

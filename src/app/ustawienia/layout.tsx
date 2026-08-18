@@ -1,4 +1,5 @@
 import { UstawieniaNav } from "@/components/UstawieniaNav";
+import { isAuthEnabled } from "@/lib/session";
 
 export default function UstawieniaLayout({
   children,
@@ -12,7 +13,7 @@ export default function UstawieniaLayout({
         <p className="text-muted text-sm mt-1">Ustawienia ogólne aplikacji</p>
       </div>
 
-      <UstawieniaNav />
+      <UstawieniaNav authEnabled={isAuthEnabled()} />
 
       {children}
     </div>
