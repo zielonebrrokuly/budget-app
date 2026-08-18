@@ -212,23 +212,25 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
 
   return (
     <>
-      {/* Telefon/tablet: wąski pasek na górze — nawigacja jest na dole, więc
-          zostaje tu tylko nazwa i wylogowanie. */}
-      <header className="lg:hidden border-b border-border bg-surface/60 backdrop-blur sticky top-0 z-10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center gap-2">
-          <span className="font-semibold text-foreground tracking-tight shrink-0">Budżet</span>
-          {authEnabled && (
-            <form action={logout} className="ml-auto">
+      {/* Telefon/tablet: samo wylogowanie. Celowo BEZ sticky — pasek przewija
+          się razem z treścią, więc ikona znika przy przewijaniu w dół i wraca
+          dopiero na samej górze. Nawigacja jest na dolnym pasku. */}
+      {authEnabled && (
+        <header className="lg:hidden">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 flex justify-end">
+            <form action={logout}>
               <button
                 type="submit"
-                className="px-3 py-1.5 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
+                aria-label="Wyloguj"
+                title="Wyloguj"
+                className="flex p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface-alt transition-colors"
               >
-                Wyloguj
+                <LogoutIcon />
               </button>
             </form>
-          )}
-        </div>
-      </header>
+          </div>
+        </header>
+      )}
 
       {/* Telefon/tablet: pasek zakładek na dole. pb uwzględnia pasek gestów
           iPhone'a, żeby zakładki nie chowały się pod nim. */}

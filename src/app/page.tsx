@@ -90,10 +90,9 @@ export default async function DashboardPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
-        <p className="text-muted text-sm mt-1">Podsumowanie: {monthLabel}</p>
-      </div>
+      {/* Tytuł tylko dla czytników ekranu — na ekranie byłby zbędny, bo miesiąc
+          widać w przełączniku poniżej, a nazwę sekcji w nawigacji. */}
+      <h1 className="sr-only">Dashboard — {monthLabel}</h1>
 
       <MonthSwitcher selectedMonth={selectedMonth} />
 
