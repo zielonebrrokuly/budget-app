@@ -123,38 +123,67 @@ html {
   container-type: inline-size;
 }
 
-/* Kratka jest tak duża, żeby w widocznej części zmieściło się DOKŁADNIE 15 dni
-   (minus kolumna nazw i odstępy). Na wąskim ekranie taki podział dałby kratki
-   nie do trafienia palcem, więc pilnuje tego dolny limit — wtedy widać mniej
-   dni, ale siatka przewija się i tak. */
+/* Telefon: nazwa nawyku NAD rzędem kratek — zwalnia całą szerokość na dni,
+   więc widać ich więcej i są czytelniejsze. Kolumny nazw nie ma, stąd 0px. */
 .habit-month {
-  --habit-name-w: 6rem;
+  --habit-name-w: 0px;
+  /* Kratka tak duża, żeby w widocznej części zmieściło się 15 dni. Dolny limit
+     pilnuje, żeby na wąskim ekranie dało się w nią trafić palcem — wtedy dni
+     widać mniej, ale siatka i tak się przewija. */
   --habit-cell: max(1.9rem, calc((100cqi - var(--habit-name-w) - 4rem) / 15));
+}
+
+.habit-cells {
+  display: grid;
+  gap: 0.25rem;
+}
+
+/* Nazwa przykleja się do lewej krawędzi, żeby po przewinięciu w prawo nadal
+   było widać, którego nawyku dotyczy rząd. */
+.habit-name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  padding-bottom: 0.125rem;
+  width: max-content;
+  max-width: 100%;
+}
+
+/* Pusty odstępnik w rzędzie z numerami dni jest potrzebny tylko wtedy, gdy
+   nazwa stoi obok kratek, czyli na dużym ekranie. */
+.habit-name--spacer {
+  display: none;
 }
 
 @media (min-width: 64rem) {
   .habit-month {
     --habit-name-w: 9rem;
   }
-}
 
-/* Kolumna z nazwami przykleja się przy przewijaniu. MUSI być rozciągnięta na
-   całą wysokość wiersza (siatka ma items-center, więc sama zajęłaby tyle co
-   tekst) — inaczej kratki przejeżdżają nad i pod tłem nazwy. Kreska po prawej
-   pokazuje, że to stała kolumna, a nie tekst nachodzący na siatkę. */
-.habit-sticky {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  /* Siatka ma gap 0.25rem, a przyklejona nazwa zakrywa tylko swój wiersz —
-     w przerwach między wierszami prześwitywałaby obwódka dzisiejszego dnia.
-     Ujemny margines rozciąga tło o połowę przerwy w górę i w dół, więc sąsiednie
-     nazwy stykają się i tworzą jeden ciągły pas. */
-  margin-block: -0.125rem;
-  padding-block: 0.125rem;
+  .habit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .habit-name {
+    display: block;
+    flex: none;
+    width: var(--habit-name-w);
+    align-self: stretch;
+    padding-bottom: 0;
+    padding-right: 0.5rem;
+    border-right: 1px solid var(--border);
+    /* Rzędy dzieli odstęp 0.25rem — bez tego obwódka dzisiejszego dnia
+       prześwitywałaby w szczelinach między nazwami. */
+    margin-block: -0.125rem;
+    padding-block: 0.125rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .habit-name--spacer {
+    display: block;
+  }
 }
