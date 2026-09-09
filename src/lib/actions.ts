@@ -480,3 +480,91 @@ export async function setFoodBudget(
     return { error: e instanceof Error ? e.message : "Coś poszło nie tak." };
   }
 }
+
+// ---------- Nawyki ----------
+
+export async function createHabit(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const name = String(formData.get("name") ?? "").trim();
+    if (!name) return { error: "Podaj nazwę nawyku." };
+
+    const existing = await prisma.habit.findUnique({ where: { name } });
+    if (existing) return { error: "Taki nawyk już istnieje." };
+
+    const last = await prisma.habit.findFirst({ orderBy: { sortOrder: "desc" } });
+    await prisma.habit.create({
+      data: { name, sortOrder: (last?.sortOrder ?? -1) + 1 },
+    });
+
+    revalidatePath("/nawyki");
+    revalidatePath("/ustawienia/nawyki");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Coś poszło nie tak." };
+  }
+}
+
+export async function renameHabit(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const id = String(formData.get("id") ?? "");
+    const name = String(formData.get("name") ?? "").trim();
+    if (!id) return { error: "Brak identyfikatora nawyku." };
+    if (!name) return { error: "Podaj nazwę nawyku." };
+
+    const duplicate = await prisma.habit.findFirst({ where: { name, NOT: { id } } });
+    if (duplicate) return { error: "Taki nawyk już istnieje." };
+
+    await prisma.habit.update({ where: { id }, data: { name } });
+
+    revalidatePath("/nawyki");
+    revalidatePath("/ustawienia/nawyki");
+    return { success: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Coś poszło nie tak." };
+  }
+}
+
+// Archiwizacja zamiast usuwania: nawyk znika z codziennej listy, ale odhaczone
+// dni zostają, więc dasz radę wrócić do niego bez utraty historii.
+export async function setHabitArchived(id: string, archived: boolean) {
+  await prisma.habit.update({ where: { id }, data: { archived } });
+  revalidatePath("/nawyki");
+  revalidatePath("/ustawienia/nawyki");
+}
+
+export async function deleteHabit(id: string) {
+  // Wpisy lecą kaskadą (onDelete: Cascade) — to jest nieodwracalne, dlatego
+  // w interfejsie usuwanie stoi obok archiwizacji z licznikiem odhaczonych dni.
+  await prisma.habit.delete({ where: { id } });
+  revalidatePath("/nawyki");
+  revalidatePath("/ustawienia/nawyki");
+}
+
+/** Odhaczenie/odznaczenie dnia. Brak wiersza = nieodhaczone. */
+export async function toggleHabitEntry(habitId: string, dayIso: string) {
+  const [y, m, d] = dayIso.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+
+  // Przyszłości nie odhaczamy — dzień jeszcze nie nastąpił.
+  const today = new Date();
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (date.getTime() > todayMidnight.getTime()) return;
+
+  const existing = await prisma.habitEntry.findUnique({
+    where: { habitId_date: { habitId, date } },
+  });
+
+  if (existing) {
+    await prisma.habitEntry.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.habitEntry.create({ data: { habitId, date } });
+  }
+
+  revalidatePath("/nawyki");
+}

@@ -70,3 +70,25 @@ model TransactionAudit {
 
   @@index([changedAt])
 }
+
+// Śledzenie nawyków: definicja nawyku + jeden wpis na każdy odhaczony dzień.
+// Brak wpisu = nieodhaczone, więc odznaczenie po prostu kasuje wiersz.
+model Habit {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  sortOrder Int          @default(0)
+  // Archiwizacja zamiast usuwania — nawyk znika z listy, ale historia zostaje.
+  archived  Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  entries   HabitEntry[]
+}
+
+model HabitEntry {
+  id      String   @id @default(cuid())
+  habitId String
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date    DateTime // północ dnia, tak samo jak zakresy miesięcy w queries.ts
+
+  @@unique([habitId, date])
+  @@index([date])
+}

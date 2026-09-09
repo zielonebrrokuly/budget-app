@@ -90,7 +90,7 @@ html {
 }
 
 /* Suwak dolnego paska zakładek — ta sama zasada co przy miesiącach.
-   Dzielnik 4 odpowiada liczbie zakładek (MAIN_LINKS + Ustawienia);
+   Dzielnik 5 odpowiada liczbie zakładek (MAIN_LINKS + Ustawienia);
    przy dokładaniu zakładki trzeba go zmienić razem z Nav.tsx. */
 @property --tab {
   syntax: "<number>";
@@ -103,7 +103,7 @@ html {
 }
 
 .tabbar-thumb {
-  width: calc((100% - 1rem) / 4);
+  width: calc((100% - 1rem) / 5);
   height: calc(100% - 1rem);
   transform: translateX(calc(var(--tab) * 100%));
 }
@@ -112,4 +112,49 @@ html {
   .tabbar-track {
     transition: none;
   }
+}
+
+/* Siatka odhaczania nawyków: cały miesiąc w kolumnach. Na telefonie 30 kolumn
+   się nie mieści, więc kratki mają stały rozmiar, a siatka przewija się w
+   poziomie; kolumna z nazwą jest przyklejona do lewej krawędzi. */
+/* Kontener jest jednostką odniesienia dla `cqi`, dzięki czemu rozmiar kratki
+   wyliczamy z jego szerokości bez mierzenia w JS. */
+.habit-scroll {
+  container-type: inline-size;
+}
+
+/* Kratka jest tak duża, żeby w widocznej części zmieściło się DOKŁADNIE 15 dni
+   (minus kolumna nazw i odstępy). Na wąskim ekranie taki podział dałby kratki
+   nie do trafienia palcem, więc pilnuje tego dolny limit — wtedy widać mniej
+   dni, ale siatka przewija się i tak. */
+.habit-month {
+  --habit-name-w: 6rem;
+  --habit-cell: max(1.9rem, calc((100cqi - var(--habit-name-w) - 4rem) / 15));
+}
+
+@media (min-width: 64rem) {
+  .habit-month {
+    --habit-name-w: 9rem;
+  }
+}
+
+/* Kolumna z nazwami przykleja się przy przewijaniu. MUSI być rozciągnięta na
+   całą wysokość wiersza (siatka ma items-center, więc sama zajęłaby tyle co
+   tekst) — inaczej kratki przejeżdżają nad i pod tłem nazwy. Kreska po prawej
+   pokazuje, że to stała kolumna, a nie tekst nachodzący na siatkę. */
+.habit-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  /* Siatka ma gap 0.25rem, a przyklejona nazwa zakrywa tylko swój wiersz —
+     w przerwach między wierszami prześwitywałaby obwódka dzisiejszego dnia.
+     Ujemny margines rozciąga tło o połowę przerwy w górę i w dół, więc sąsiednie
+     nazwy stykają się i tworzą jeden ciągły pas. */
+  margin-block: -0.125rem;
+  padding-block: 0.125rem;
 }

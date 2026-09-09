@@ -123,6 +123,18 @@ function CollapseIcon({ collapsed }: { collapsed: boolean }) {
   );
 }
 
+// Lista z odhaczeniem — czytelnie inna niż wykres słupkowy Podsumowania.
+function HabitsIcon() {
+  return (
+    <svg {...iconProps} aria-hidden="true">
+      <polyline points="3 7 5 9 9 5" />
+      <polyline points="3 17 5 19 9 15" />
+      <line x1="13" y1="7" x2="21" y2="7" />
+      <line x1="13" y1="17" x2="21" y2="17" />
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg {...iconProps} aria-hidden="true">
@@ -133,13 +145,23 @@ function LogoutIcon() {
   );
 }
 
-const MAIN_LINKS = [
+type NavLinkDef = {
+  href: string;
+  label: string;
+  /** Podpis na dolnym pasku telefonu — przy pięciu zakładkach pełne
+   *  „Podsumowanie" nie mieści się w segmencie i zostałoby przycięte. */
+  short?: string;
+  Icon: () => ReactElement;
+};
+
+const MAIN_LINKS: NavLinkDef[] = [
   { href: "/", label: "Dashboard", Icon: HomeIcon },
   { href: "/transakcje", label: "Transakcje", Icon: TransactionsIcon },
-  { href: "/podsumowanie", label: "Podsumowanie", Icon: BarChartIcon },
+  { href: "/podsumowanie", label: "Podsumowanie", short: "Raport", Icon: BarChartIcon },
+  { href: "/nawyki", label: "Nawyki", Icon: HabitsIcon },
 ];
 
-const SETTINGS_LINK = { href: "/ustawienia", label: "Ustawienia", Icon: GearIcon };
+const SETTINGS_LINK: NavLinkDef = { href: "/ustawienia", label: "Ustawienia", Icon: GearIcon };
 
 // Kolejność zakładek dolnego paska. Liczba pozycji musi się zgadzać z dzielnikiem
 // w .tabbar-thumb (globals.css), bo z niego wynika szerokość suwaka.
@@ -149,24 +171,29 @@ const TAB_LINKS = [...MAIN_LINKS, SETTINGS_LINK];
 function TabBarLink({
   href,
   label,
+  short,
   Icon,
   active,
 }: {
   href: string;
   label: string;
+  short?: string;
   Icon: () => ReactElement;
   active: boolean;
 }) {
   return (
     <Link
       href={href}
+      aria-label={label}
       aria-current={active ? "page" : undefined}
-      className={`relative z-10 flex flex-1 min-w-0 flex-col items-center gap-0.5 rounded-2xl px-1 py-1.5 transition-colors ${
+      className={`relative z-10 flex flex-1 min-w-0 flex-col items-center gap-0.5 rounded-2xl px-0.5 py-1.5 transition-colors ${
         active ? "text-accent" : "text-muted"
       }`}
     >
       <Icon />
-      <span className="text-[10px] font-medium leading-tight truncate max-w-full">{label}</span>
+      <span className="text-[10px] font-medium leading-tight truncate max-w-full">
+        {short ?? label}
+      </span>
     </Link>
   );
 }
@@ -232,8 +259,15 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
               className="tabbar-thumb pointer-events-none absolute top-2 left-2 rounded-2xl bg-accent/15"
             />
           )}
-          {TAB_LINKS.map(({ href, label, Icon }) => (
-            <TabBarLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
+          {TAB_LINKS.map(({ href, label, short, Icon }) => (
+            <TabBarLink
+              key={href}
+              href={href}
+              label={label}
+              short={short}
+              Icon={Icon}
+              active={isActive(href)}
+            />
           ))}
         </div>
       </nav>

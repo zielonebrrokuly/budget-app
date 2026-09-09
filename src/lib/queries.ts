@@ -263,3 +263,27 @@ export async function getRecentTransactions(limit: number) {
     take: limit,
   });
 }
+
+export async function getHabits(includeArchived = false) {
+  return prisma.habit.findMany({
+    where: includeArchived ? {} : { archived: false },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  });
+}
+
+/** Odhaczone dni w zakresie [from, to) — zwracamy zbiór kluczy na nawyk. */
+export async function getHabitEntries(from: Date, to: Date) {
+  const rows = await prisma.habitEntry.findMany({
+    where: { date: { gte: from, lt: to } },
+    select: { habitId: true, date: true },
+  });
+
+  const byHabit = new Map<string, Set<string>>();
+  for (const row of rows) {
+    if (!byHabit.has(row.habitId)) byHabit.set(row.habitId, new Set());
+    const m = String(row.date.getMonth() + 1).padStart(2, "0");
+    const d = String(row.date.getDate()).padStart(2, "0");
+    byHabit.get(row.habitId)!.add(`${row.date.getFullYear()}-${m}-${d}`);
+  }
+  return byHabit;
+}

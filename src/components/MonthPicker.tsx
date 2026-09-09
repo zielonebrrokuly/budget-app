@@ -10,9 +10,11 @@ import { MONTH_NAMES } from "@/lib/categories";
 export function MonthPicker({
   selectedMonth,
   year,
+  basePath = "/",
 }: {
   selectedMonth: number;
   year: number;
+  basePath?: string;
 }) {
   const router = useRouter();
 
@@ -40,7 +42,7 @@ export function MonthPicker({
       <select
         value={selectedMonth}
         aria-label="Wybierz miesiąc"
-        onChange={(e) => router.push(`/?month=${e.target.value}`)}
+        onChange={(e) => router.push(`${basePath}?month=${e.target.value}`)}
         className="absolute inset-0 w-full h-full appearance-none opacity-0"
       >
         {MONTH_NAMES.map((name, i) => (
