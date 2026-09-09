@@ -56,8 +56,9 @@ export default async function NawykiPage({
       <MonthPicker selectedMonth={selectedMonth} year={year} basePath="/nawyki" />
       <MonthSwitcher selectedMonth={selectedMonth} basePath="/nawyki" />
 
+      {/* Bez nagłówka — miesiąc widać w przełączniku nad kartą, a nazwa sekcji
+          tylko powtarzałaby to samo. Tytuł strony jest w h1 dla czytników. */}
       <Card>
-        <h2 className="font-medium text-foreground mb-4">Odhaczanie — {monthLabel}</h2>
         <HabitMonthGrid habits={habits} days={days} done={done} today={today} />
       </Card>
 
